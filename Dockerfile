@@ -6,6 +6,9 @@ RUN npm install
 COPY frontend/ ./
 RUN npm run build
 
+# Add a build timestamp to force rebuild
+RUN echo "Build timestamp: $(date)" > build-info.txt
+
 # Use Python for the backend
 FROM python:3.11-slim
 WORKDIR /app

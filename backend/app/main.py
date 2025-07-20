@@ -32,6 +32,16 @@ app.include_router(inventory.router, prefix=settings.api_v1_prefix)
 app.include_router(locations.router, prefix=settings.api_v1_prefix)
 app.include_router(health.router, prefix=settings.api_v1_prefix)
 
+# Test endpoint to verify Railway is running our code
+@app.get("/test-railway")
+async def test_railway():
+    return {
+        "message": "CMMS API is running on Railway!",
+        "version": "2.0",
+        "timestamp": "2024-01-15",
+        "status": "active"
+    }
+
 # Mount static files (React frontend)
 try:
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
@@ -47,14 +57,15 @@ except Exception as e:
             "endpoints": {
                 "api": "/api",
                 "health": "/health",
-                "docs": "/docs"
+                "docs": "/docs",
+                "test": "/test-railway"
             }
         }
 
 # Add a simple health check for Railway
 @app.get("/railway-health")
 async def railway_health():
-    return {"status": "healthy", "service": "CMMS API"}
+    return {"status": "healthy", "service": "CMMS API v2"}
 
 @app.get("/api")
 async def api_root():
