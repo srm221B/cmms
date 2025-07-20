@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMMS - Computerized Maintenance Management System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .status {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #4CAF50;
+        }
+        .endpoints {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .endpoint-link {
+            display: block;
+            color: #2196F3;
+            text-decoration: none;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .endpoint-link:hover {
+            background-color: #e3f2fd;
+        }
+        .emoji {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">🏭</div>
+        <h1>CMMS System</h1>
+        
+        <div class="status">
+            <h2>✅ Backend API is Running!</h2>
+            <p>Your CMMS backend is successfully deployed on Railway.</p>
+        </div>
+        
+        <div class="endpoints">
+            <h3>🔗 Available Endpoints:</h3>
+            <a href="/api" class="endpoint-link">📊 API Root</a>
+            <a href="/health" class="endpoint-link">💚 Health Check</a>
+            <a href="/docs" class="endpoint-link">📚 API Documentation</a>
+            <a href="/test-railway" class="endpoint-link">🧪 Test Endpoint</a>
+        </div>
+        
+        <div class="status">
+            <h3>📊 Available Modules:</h3>
+            <p>• Assets Management</p>
+            <p>• Work Orders</p>
+            <p>• Inventory Management</p>
+            <p>• User Management</p>
+        </div>
+        
+        <p style="color: #666; margin-top: 30px;">
+            <small>Deployed on Railway • CMMS v2.0</small>
+        </p>
+    </div>
+</body>
+</html> 

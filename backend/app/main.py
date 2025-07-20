@@ -53,7 +53,7 @@ except Exception as e:
     async def root_fallback():
         return {
             "message": "CMMS API is running!",
-            "status": "Frontend not built yet",
+            "status": "Static files not found",
             "endpoints": {
                 "api": "/api",
                 "health": "/health",
