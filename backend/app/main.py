@@ -35,6 +35,7 @@ app.include_router(health.router, prefix=settings.api_v1_prefix)
 # Mount static files (React frontend)
 try:
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
+    print("✅ Static files mounted successfully")
 except Exception as e:
     print(f"Warning: Could not mount static files: {e}")
     # Create a fallback route for the root
