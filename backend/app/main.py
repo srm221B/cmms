@@ -45,7 +45,22 @@ async def test_railway():
 # Root endpoint - serve the main page
 @app.get("/")
 async def root():
-    return FileResponse("static/index.html")
+    try:
+        return FileResponse("static/index.html")
+    except Exception as e:
+        # Fallback if static file not found
+        return {
+            "message": "CMMS API is running on Railway!",
+            "status": "active",
+            "version": "2.0",
+            "endpoints": {
+                "api_docs": "/docs",
+                "health": "/health",
+                "test": "/test-railway",
+                "api_root": "/api"
+            },
+            "error": f"Static file issue: {str(e)}"
+        }
 
 # Mount static files at /static path
 try:
