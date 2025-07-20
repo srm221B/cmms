@@ -5,4 +5,4 @@ nixPkgs = ['python311']
 cmds = ['cd backend && pip install -r requirements.txt']
 
 [start]
-cmd = 'cd backend && python railway_start.py'
+cmd = 'cd backend && python simple_test.py'
