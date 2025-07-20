@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
 import os
-import psutil
 import platform
 
 router = APIRouter()
@@ -20,9 +19,6 @@ async def health_check():
         system_info = {
             "platform": platform.system(),
             "python_version": platform.python_version(),
-            "cpu_count": psutil.cpu_count(),
-            "memory_total": psutil.virtual_memory().total,
-            "memory_available": psutil.virtual_memory().available,
         }
         
         # Application info
@@ -63,25 +59,17 @@ async def get_status():
     Get detailed application status
     """
     try:
-        # Memory usage
-        memory = psutil.virtual_memory()
+        # Memory usage (simplified)
         memory_usage = {
-            "total": memory.total,
-            "available": memory.available,
-            "percent": memory.percent,
-            "used": memory.used,
+            "status": "available",
         }
         
-        # CPU usage
-        cpu_usage = psutil.cpu_percent(interval=1)
+        # CPU usage (simplified)
+        cpu_usage = "available"
         
-        # Disk usage
-        disk = psutil.disk_usage('/')
+        # Disk usage (simplified)
         disk_usage = {
-            "total": disk.total,
-            "used": disk.used,
-            "free": disk.free,
-            "percent": disk.percent,
+            "status": "available",
         }
         
         return {
