@@ -42,6 +42,20 @@ railway link
 railway up
 ```
 
+## 🔧 Latest Fixes Applied
+
+### ✅ Updated Configuration Files:
+- **`railway.json`** - Simplified start command
+- **`build.sh`** - Proper build script with dependency installation
+- **`runtime.txt`** - Specified Python 3.11
+- **`backend/static/index.html`** - Fallback static page
+
+### 🚀 Key Changes:
+1. **Simplified start command** - Removed complex pip install from start command
+2. **Added build script** - `build.sh` handles dependency installation
+3. **Static file fallback** - Beautiful HTML page when frontend isn't built
+4. **Python version specification** - `runtime.txt` ensures correct Python version
+
 ## 📊 Expected Results
 
 After fixing the Railway connection, you should see:
@@ -57,6 +71,21 @@ After fixing the Railway connection, you should see:
 2. **Verify the repository branch is `main`**
 3. **Make sure Railway has access to your GitHub repository**
 4. **Try creating a completely new Railway project**
+5. **Check if build script is executable** (`chmod +x build.sh`)
+
+## 🔍 Troubleshooting Steps
+
+### Check Deployment Logs:
+1. Go to Railway Dashboard
+2. Click on your project
+3. Go to "Deployments" tab
+4. Click on latest deployment
+5. Check "Build Logs" and "Deploy Logs"
+
+### Common Issues:
+- **Build fails**: Check if `requirements.txt` is valid
+- **Start command fails**: Verify Python path and dependencies
+- **Static files not found**: Check if `backend/static/` directory exists
 
 ## 📞 Support
 

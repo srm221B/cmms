@@ -69,8 +69,16 @@ async def railway_health():
 
 @app.get("/api")
 async def api_root():
-    return {"message": "CMMS API is running!"}
+    return {
+        "message": "CMMS API is running!",
+        "version": "2.0",
+        "endpoints": {
+            "health": "/api/v1/health",
+            "docs": "/docs",
+            "test": "/test-railway"
+        }
+    }
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "redirect": "/api/v1/health"}

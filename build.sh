@@ -1,21 +1,23 @@
 #!/bin/bash
+echo "🚀 Starting CMMS build process..."
 
-echo "🚀 Building CMMS for Railway deployment..."
+# Navigate to backend directory
+cd backend
 
-# Build frontend
-echo "📦 Building React frontend..."
-cd frontend
-npm install
-npm run build
-
-# Copy built frontend to backend static folder
-echo "📁 Copying frontend to backend..."
-mkdir -p ../backend/static
-cp -r build/* ../backend/static/
-
-# Install backend dependencies
-echo "🐍 Installing Python dependencies..."
-cd ../backend
+# Install Python dependencies
+echo "📦 Installing Python dependencies..."
 pip install -r requirements.txt
 
-echo "✅ Build complete! Ready for deployment." 
+# Create static directory if it doesn't exist
+mkdir -p static
+
+# Copy frontend build to static directory (if frontend is built)
+if [ -d "../frontend/build" ]; then
+    echo "📁 Copying frontend build to static directory..."
+    cp -r ../frontend/build/* static/
+else
+    echo "⚠️  Frontend build not found, creating fallback..."
+    echo "<!DOCTYPE html><html><head><title>CMMS API</title></head><body><h1>CMMS API is running!</h1><p>Frontend not built. Check <a href='/api'>/api</a> for endpoints.</p></body></html>" > static/index.html
+fi
+
+echo "✅ Build completed successfully!" 
