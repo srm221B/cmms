@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -18,14 +18,14 @@ router = APIRouter(prefix="/inventory", tags=["inventory"])
 class TransferItemRequest(BaseModel):
     spare_part_id: int
     quantity: int
-    unit_cost: float | None = None
+    unit_cost: Optional[float] = None
 
 class TransferRequest(BaseModel):
     from_location_id: int
     to_location_id: int
     transferred_by: int
     transfer_date: datetime
-    notes: str | None = None
+    notes: Optional[str] = None
     items: List[TransferItemRequest]
 
 class ReceivePartRequest(BaseModel):
@@ -36,7 +36,7 @@ class ReceivePartRequest(BaseModel):
     received_date: datetime
     supplier: str
     reference_number: str
-    unit_cost: float | None = None
+    unit_cost: Optional[float] = None
 
 @router.get("/", response_model=List[Inventory])
 def read_inventory(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
