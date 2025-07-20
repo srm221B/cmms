@@ -1,59 +1,41 @@
 #!/bin/bash
+# User data script for EC2 instance - automatically deploys CMMS
 
-echo "🚀 CMMS EC2 Instance Setup"
-echo "=========================="
+echo "🚀 Starting CMMS deployment on EC2..."
 
 # Update system
 yum update -y
 
-# Install Python 3.11 and pip
-yum install -y python3.11 python3.11-pip
+# Install dependencies
+yum install python3 python3-pip git -y
 
-# Install Node.js 18
-curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
-yum install -y nodejs
-
-# Install PostgreSQL client
-yum install -y postgresql15
-
-# Install nginx
-yum install -y nginx
-
-# Install git
-yum install -y git
-
-# Create application directory
-mkdir -p /opt/cmms
-cd /opt/cmms
-
-# Clone your repository (replace with your actual repo URL)
-git clone https://github.com/your-username/cmms.git .
-
-# Set up Python virtual environment
-python3.11 -m venv venv
-source venv/bin/activate
+# Clone repository
+cd /home/ec2-user
+git clone https://github.com/srm221B/cmms.git
+cd cmms
 
 # Install Python dependencies
-pip install -r backend/requirements.txt
+pip3 install -r requirements-minimal.txt
 
-# Install frontend dependencies
-cd frontend
-npm install
-npm run build
-cd ..
+# Create environment file
+cat > .env << EOF
+DATABASE_URL=sqlite:///./cmms.db
+CORS_ORIGINS=http://localhost:3000,http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+SECRET_KEY=$(openssl rand -hex 32)
+EOF
 
-# Create systemd service for backend
-cat > /etc/systemd/system/cmms-backend.service << EOF
+# Create systemd service
+cat > /tmp/cmms.service << EOF
 [Unit]
-Description=CMMS Backend API
+Description=CMMS FastAPI Application
 After=network.target
 
 [Service]
 Type=simple
 User=ec2-user
-WorkingDirectory=/opt/cmms/backend
-Environment=PATH=/opt/cmms/venv/bin
-ExecStart=/opt/cmms/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+WorkingDirectory=/home/ec2-user/cmms
+Environment=PATH=/home/ec2-user/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/ec2-user/.local/bin/uvicorn app.main:app --host 0.0.0.0 --port 80
 Restart=always
 RestartSec=10
 
@@ -61,73 +43,50 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-# Create nginx configuration
-cat > /etc/nginx/conf.d/cmms.conf << EOF
-server {
-    listen 80;
-    server_name your-cmms-domain.com;
+# Install service
+cp /tmp/cmms.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable cmms
+systemctl start cmms
 
-    # Frontend
-    location / {
-        root /opt/cmms/frontend/build;
-        try_files \$uri \$uri/ /index.html;
-    }
-
-    # Backend API
-    location /api/ {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "no-referrer-when-downgrade" always;
-    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
-}
+# Create a simple status page
+cat > /home/ec2-user/cmms-status.html << EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CMMS Deployment Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .status { padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🏭 CMMS Deployment Status</h1>
+    <div class="status success">
+        <h2>✅ Deployment Complete!</h2>
+        <p>Your CMMS application has been successfully deployed on AWS EC2.</p>
+    </div>
+    <div class="status info">
+        <h3>📋 Access URLs:</h3>
+        <ul>
+            <li><strong>Main App:</strong> <a href="/">http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/</a></li>
+            <li><strong>API Docs:</strong> <a href="/docs">http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/docs</a></li>
+            <li><strong>Health Check:</strong> <a href="/health">http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/health</a></li>
+        </ul>
+    </div>
+    <div class="status info">
+        <h3>🔧 Management Commands:</h3>
+        <ul>
+            <li><code>sudo systemctl status cmms</code> - Check service status</li>
+            <li><code>sudo journalctl -u cmms -f</code> - View logs</li>
+            <li><code>sudo systemctl restart cmms</code> - Restart service</li>
+        </ul>
+    </div>
+</body>
+</html>
 EOF
 
-# Create environment file
-cat > /opt/cmms/backend/.env << EOF
-DATABASE_URL=postgresql://cmms_admin:YOUR_PASSWORD@YOUR_RDS_ENDPOINT:5432/cmms
-CORS_ORIGINS=https://your-cmms-domain.com
-SECRET_KEY=YOUR_SECRET_KEY_HERE
-EOF
-
-# Set up SSL with Let's Encrypt
-yum install -y certbot python3-certbot-nginx
-
-# Start services
-systemctl enable nginx
-systemctl start nginx
-systemctl enable cmms-backend
-systemctl start cmms-backend
-
-# Set up log rotation
-cat > /etc/logrotate.d/cmms << EOF
-/opt/cmms/backend/logs/*.log {
-    daily
-    missingok
-    rotate 52
-    compress
-    delaycompress
-    notifempty
-    create 644 ec2-user ec2-user
-}
-EOF
-
-echo "✅ EC2 Instance Setup Complete!"
-echo ""
-echo "🔧 Services Status:"
-systemctl status nginx --no-pager
-systemctl status cmms-backend --no-pager
-echo ""
-echo "📋 Next Steps:"
-echo "1. Update DATABASE_URL in /opt/cmms/backend/.env"
-echo "2. Update CORS_ORIGINS with your domain"
-echo "3. Set up SSL certificate: certbot --nginx -d your-cmms-domain.com"
-echo "4. Test the application: http://YOUR_EC2_IP" 
+echo "✅ CMMS deployment completed!"
+echo "🌐 Your CMMS is available at: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)" 
