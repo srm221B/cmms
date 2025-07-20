@@ -5,8 +5,8 @@ class Settings:
     # Database
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./cmms.db")
     
-    # CORS
-    cors_origins: str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+    # CORS - Allow Railway domain and localhost
+    cors_origins: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://cmms.railway.app,https://*.railway.app")
     
     # Security
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")

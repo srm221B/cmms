@@ -42,25 +42,17 @@ async def test_railway():
         "status": "active"
     }
 
-# Mount static files (React frontend)
+# Root endpoint - serve the main page
+@app.get("/")
+async def root():
+    return FileResponse("static/index.html")
+
+# Mount static files at /static path
 try:
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
     print("✅ Static files mounted successfully")
 except Exception as e:
     print(f"Warning: Could not mount static files: {e}")
-    # Create a fallback route for the root
-    @app.get("/")
-    async def root_fallback():
-        return {
-            "message": "CMMS API is running!",
-            "status": "Static files not found",
-            "endpoints": {
-                "api": "/api",
-                "health": "/health",
-                "docs": "/docs",
-                "test": "/test-railway"
-            }
-        }
 
 # Add a simple health check for Railway
 @app.get("/railway-health")
