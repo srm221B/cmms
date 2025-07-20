@@ -3,6 +3,6 @@
     "builder": "nixpacks"
   },
   "deploy": {
-    "startCommand": "cd backend && python simple_test.py"
+    "startCommand": "python app.py"
   }
 } 
