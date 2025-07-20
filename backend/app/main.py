@@ -51,6 +51,11 @@ except Exception as e:
             }
         }
 
+# Add a simple health check for Railway
+@app.get("/railway-health")
+async def railway_health():
+    return {"status": "healthy", "service": "CMMS API"}
+
 @app.get("/api")
 async def api_root():
     return {"message": "CMMS API is running!"}
