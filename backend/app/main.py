@@ -37,6 +37,18 @@ try:
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
 except Exception as e:
     print(f"Warning: Could not mount static files: {e}")
+    # Create a fallback route for the root
+    @app.get("/")
+    async def root_fallback():
+        return {
+            "message": "CMMS API is running!",
+            "status": "Frontend not built yet",
+            "endpoints": {
+                "api": "/api",
+                "health": "/health",
+                "docs": "/docs"
+            }
+        }
 
 @app.get("/api")
 async def api_root():
