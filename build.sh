@@ -4,10 +4,16 @@ echo "🚀 Starting CMMS build process..."
 # Navigate to backend directory
 cd backend
 
-# Install Python dependencies
+# Install Python dependencies with pre-compiled wheels
 echo "📦 Installing Python dependencies..."
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install --only-binary=all -r requirements.txt
+
+# If the above fails, try without binary restriction
+if [ $? -ne 0 ]; then
+    echo "⚠️  Binary installation failed, trying without restrictions..."
+    pip install -r requirements.txt
+fi
 
 # Verify installation
 echo "🔍 Verifying installation..."
