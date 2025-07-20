@@ -4,6 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.auth import check_ip_restriction, check_rate_limit, SecurityConfig
 import time
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -11,27 +12,32 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     """Security middleware for IP restrictions and rate limiting"""
     
     async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host
+        # Get client IP safely
+        client_ip = request.client.host if request.client else "unknown"
         
         # Log all requests for monitoring
         logger.info(f"Request from {client_ip}: {request.method} {request.url.path}")
         
-        # Check IP restrictions (skip for health checks)
-        if request.url.path not in ["/health", "/docs", "/openapi.json"]:
-            if not check_ip_restriction(client_ip):
-                logger.warning(f"Blocked request from unauthorized IP: {client_ip}")
-                return JSONResponse(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    content={"detail": "Access denied from this IP address"}
-                )
+        # Skip IP restrictions for Railway deployment (allow all requests)
+        # In production, you can enable IP restrictions by setting ENABLE_IP_RESTRICTIONS=true
+        if os.getenv("ENABLE_IP_RESTRICTIONS", "false").lower() == "true":
+            if request.url.path not in ["/health", "/docs", "/openapi.json", "/api/v1/health"]:
+                if not check_ip_restriction(client_ip):
+                    logger.warning(f"Blocked request from unauthorized IP: {client_ip}")
+                    return JSONResponse(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        content={"detail": "Access denied from this IP address"}
+                    )
         
-        # Check rate limiting
-        if not check_rate_limit(client_ip, request.url.path):
-            logger.warning(f"Rate limit exceeded for IP: {client_ip}")
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={"detail": "Rate limit exceeded. Please try again later."}
-            )
+        # Skip rate limiting for Railway deployment (allow all requests)
+        # In production, you can enable rate limiting by setting ENABLE_RATE_LIMITING=true
+        if os.getenv("ENABLE_RATE_LIMITING", "false").lower() == "true":
+            if not check_rate_limit(client_ip, request.url.path):
+                logger.warning(f"Rate limit exceeded for IP: {client_ip}")
+                return JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content={"detail": "Rate limit exceeded. Please try again later."}
+                )
         
         # Add security headers
         response = await call_next(request)
