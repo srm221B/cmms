@@ -45,22 +45,131 @@ async def test_railway():
 # Root endpoint - serve the main page
 @app.get("/")
 async def root():
-    try:
-        return FileResponse("static/index.html")
-    except Exception as e:
-        # Fallback if static file not found
-        return {
-            "message": "CMMS API is running on Railway!",
-            "status": "active",
-            "version": "2.0",
-            "endpoints": {
-                "api_docs": "/docs",
-                "health": "/health",
-                "test": "/test-railway",
-                "api_root": "/api"
-            },
-            "error": f"Static file issue: {str(e)}"
+    from pathlib import Path
+    import os
+    
+    # Try multiple possible paths for the static file
+    possible_paths = [
+        "static/index.html",
+        "backend/static/index.html",
+        "/app/static/index.html",
+        "/app/backend/static/index.html",
+        Path(__file__).parent.parent / "static" / "index.html"
+    ]
+    
+    for path in possible_paths:
+        try:
+            if isinstance(path, Path):
+                if path.exists():
+                    return FileResponse(str(path))
+            else:
+                if os.path.exists(path):
+                    return FileResponse(path)
+        except Exception:
+            continue
+    
+    # If no static file found, return the CMMS HTML directly
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content="""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMMS - Computerized Maintenance Management System</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
         }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        .status {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+        .endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .endpoint {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.2s;
+        }
+        .endpoint:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.2);
+        }
+        .endpoint h3 {
+            margin: 0 0 10px 0;
+        }
+        .endpoint p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏭 CMMS</h1>
+        <p class="subtitle">Computerized Maintenance Management System</p>
+        
+        <div class="status">
+            <h2>✅ System Status: Online</h2>
+            <p>The CMMS API is running successfully on Railway!</p>
+        </div>
+
+        <div class="endpoints">
+            <a href="/docs" class="endpoint">
+                <h3>📚 API Documentation</h3>
+                <p>Interactive API documentation</p>
+            </a>
+            <a href="/health" class="endpoint">
+                <h3>💚 Health Check</h3>
+                <p>System health status</p>
+            </a>
+            <a href="/test-railway" class="endpoint">
+                <h3>🧪 Test Endpoint</h3>
+                <p>Verify Railway deployment</p>
+            </a>
+            <a href="/api" class="endpoint">
+                <h3>📡 API Root</h3>
+                <p>View API status information</p>
+            </a>
+        </div>
+
+        <div style="margin-top: 40px; opacity: 0.7;">
+            <p>🚀 Deployed on Railway | 🐍 FastAPI | 🎯 Production Ready</p>
+        </div>
+    </div>
+</body>
+</html>""", status_code=200)
 
 # Mount static files at /static path
 try:
