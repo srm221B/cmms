@@ -1,193 +1,255 @@
-# 🚀 CMMS Deployment Guide for Small Team
+# CMMS Deployment Guide for DigitalOcean VM
 
-## Overview
-This guide will help you deploy your CMMS application to the cloud for use by your small team (<50 users).
+## Prerequisites
 
-## 📋 Prerequisites
-- GitHub account
-- Railway account (free tier available)
-- Vercel account (free tier available)
-- PostgreSQL database (Railway/Supabase/Neon)
+1. **DigitalOcean VM** with Ubuntu 20.04 or later
+2. **SSH Key** configured for access to your VM
+3. **VM IP Address** for deployment
 
-## 🗄️ Step 1: Database Setup
+## Quick Deployment
 
-### Option A: Railway PostgreSQL (Recommended)
-1. Go to [railway.app](https://railway.app)
-2. Create new project
-3. Add PostgreSQL service
-4. Copy the connection string
+### Step 1: Prepare Your Local Environment
 
-### Option B: Supabase
-1. Go to [supabase.com](https://supabase.com)
-2. Create new project
-3. Go to Settings → Database
-4. Copy the connection string
-
-### Option C: Neon
-1. Go to [neon.tech](https://neon.tech)
-2. Create new project
-3. Copy the connection string
-
-## 🔧 Step 2: Backend Deployment
-
-### Deploy to Railway
-1. Go to [railway.app](https://railway.app)
-2. Create new project
-3. Connect your GitHub repository
-4. Set environment variables:
-   ```
-   DATABASE_URL=your_postgres_connection_string
-   CORS_ORIGINS=https://your-frontend-domain.com
-   SECRET_KEY=your_secret_key_here
-   ```
-5. Deploy
-
-### Alternative: Deploy to Render
-1. Go to [render.com](https://render.com)
-2. Create new Web Service
-3. Connect GitHub repository
-4. Set build command: `pip install -r requirements.txt`
-5. Set start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-6. Set environment variables (same as above)
-
-## 🎨 Step 3: Frontend Deployment
-
-### Deploy to Vercel
-1. Go to [vercel.com](https://vercel.com)
-2. Import your GitHub repository
-3. Set environment variables:
-   ```
-   REACT_APP_API_URL=https://your-backend-url.railway.app
-   ```
-4. Deploy
-
-### Alternative: Deploy to Netlify
-1. Go to [netlify.com](https://netlify.com)
-2. Import your GitHub repository
-3. Set build command: `npm run build`
-4. Set publish directory: `build`
-5. Set environment variables (same as above)
-
-## 🔄 Step 4: Database Migration
-
-### Run migrations on cloud database
+Make sure your SSH key is in the correct location:
 ```bash
-# Connect to your cloud database
-psql your_connection_string
-
-# Or use Alembic
-alembic upgrade head
+# Your SSH key should be at:
+~/.ssh/cmms-key.pem
 ```
 
-## 📊 Step 5: Team Access
-
-### Share with your team
-1. **Frontend URL**: Share the Vercel/Netlify URL
-2. **API URL**: Keep this private (only for development)
-3. **Database**: Access through Railway/Supabase dashboard
-
-## 🔄 Step 6: Updates and Maintenance
-
-### Automatic Updates
-- **GitHub**: Push changes to main branch
-- **Railway**: Automatically redeploys
-- **Vercel**: Automatically redeploys
-
-### Manual Updates
-```bash
-# 1. Make changes locally
-# 2. Test locally
-# 3. Push to GitHub
-git add .
-git commit -m "Update feature"
-git push origin main
-```
-
-## 💰 Cost Estimation
-
-### Free Tier (Up to 50 users)
-- **Railway**: $0/month (free tier)
-- **Vercel**: $0/month (free tier)
-- **PostgreSQL**: $0/month (free tier)
-- **Total**: $0/month
-
-### Paid Tier (50+ users)
-- **Railway**: $5-20/month
-- **Vercel**: $20/month
-- **PostgreSQL**: $5-15/month
-- **Total**: $30-55/month
-
-## 🔒 Security Considerations
-
-### Environment Variables
-- Never commit `.env` files
-- Use Railway/Render environment variables
-- Rotate `SECRET_KEY` regularly
-
-### CORS Configuration
-- Only allow your frontend domain
-- Don't use `*` in production
-
-### Database Security
-- Use strong passwords
-- Enable SSL connections
-- Regular backups
-
-## 📱 Team Onboarding
-
-### For Team Members
-1. **Access**: Share the frontend URL
-2. **Training**: Create user guide
-3. **Support**: Set up communication channel
-
-### For Administrators
-1. **Database Access**: Railway/Supabase dashboard
-2. **Logs**: Railway/Render logs
-3. **Monitoring**: Set up alerts
-
-## 🚨 Troubleshooting
-
-### Common Issues
-1. **CORS Errors**: Check `CORS_ORIGINS` environment variable
-2. **Database Connection**: Verify `DATABASE_URL`
-3. **Build Failures**: Check logs in Railway/Vercel
-
-### Support
-- **Railway**: [docs.railway.app](https://docs.railway.app)
-- **Vercel**: [vercel.com/docs](https://vercel.com/docs)
-- **PostgreSQL**: [postgresql.org/docs](https://postgresql.org/docs)
-
-## 🎯 Quick Start Commands
+### Step 2: Run the Production Deployment
 
 ```bash
-# 1. Run deployment script
-chmod +x deploy.sh
-./deploy.sh
-
-# 2. Push to GitHub
-git add .
-git commit -m "Deploy to cloud"
-git push origin main
-
-# 3. Deploy to Railway
-# Go to railway.app and connect repository
-
-# 4. Deploy to Vercel
-# Go to vercel.com and import repository
+# Replace YOUR_VM_IP with your actual VM IP address
+./deploy_production.sh YOUR_VM_IP
 ```
 
-## 📈 Scaling Considerations
+This script will:
+- ✅ Build the React frontend
+- ✅ Upload files to your VM
+- ✅ Install system dependencies
+- ✅ Set up Python virtual environment
+- ✅ Initialize SQLite database
+- ✅ Create systemd service for production
+- ✅ Configure nginx reverse proxy
+- ✅ Set up firewall rules
+- ✅ Start the application
 
-### When to Upgrade
-- **Users**: >50 concurrent users
-- **Data**: >1GB database
-- **Performance**: Slow response times
+### Step 3: Access Your Application
 
-### Upgrade Path
-1. **Railway**: Upgrade to paid plan
-2. **Database**: Larger PostgreSQL instance
-3. **CDN**: Add Vercel Pro for better performance
+After deployment, your CMMS application will be available at:
+```
+http://YOUR_VM_IP
+```
 
----
+## Database Management
 
-**🎉 Congratulations!** Your CMMS is now deployed and ready for your team! 
+### On the VM (after deployment)
+
+SSH into your VM and navigate to the application directory:
+```bash
+ssh -i ~/.ssh/cmms-key.pem ubuntu@YOUR_VM_IP
+cd /home/ubuntu/cmms
+```
+
+### Database Setup Commands
+
+```bash
+# Full database setup (recommended for first time)
+./database_setup.sh full
+
+# Individual commands:
+./database_setup.sh init    # Initialize database tables
+./database_setup.sh data    # Create initial admin user
+./database_setup.sh backup  # Create database backup
+./database_setup.sh info    # Show database information
+```
+
+### Initial Login Credentials
+
+After running the database setup, you can log in with:
+- **Email**: `admin@cmms.com`
+- **Password**: `admin123`
+
+⚠️ **Important**: Change the admin password after first login!
+
+## Application Management
+
+### Service Commands
+
+```bash
+# Check service status
+sudo systemctl status cmms
+
+# View application logs
+sudo journalctl -u cmms -f
+
+# Restart application
+sudo systemctl restart cmms
+
+# Stop application
+sudo systemctl stop cmms
+
+# Start application
+sudo systemctl start cmms
+```
+
+### Nginx Commands
+
+```bash
+# Check nginx status
+sudo systemctl status nginx
+
+# View nginx logs
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+
+# Restart nginx
+sudo systemctl restart nginx
+
+# Test nginx configuration
+sudo nginx -t
+```
+
+## File Locations
+
+```
+/home/ubuntu/cmms/
+├── venv/                    # Python virtual environment
+├── backend/                 # FastAPI backend
+│   ├── app/                # Application code
+│   ├── static/             # Built React frontend
+│   ├── cmms.db            # SQLite database
+│   └── .env               # Environment variables
+├── frontend/               # React frontend source
+└── database_setup.sh      # Database management script
+```
+
+## Environment Configuration
+
+The deployment script creates a `.env` file with:
+```env
+DATABASE_URL=sqlite:///./cmms.db
+SECRET_KEY=<auto-generated-secure-key>
+CORS_ORIGINS=http://YOUR_VM_IP,http://YOUR_VM_IP:3000,http://localhost:3000
+DEBUG=false
+```
+
+## Troubleshooting
+
+### Application Not Starting
+
+1. Check service status:
+   ```bash
+   sudo systemctl status cmms
+   ```
+
+2. View logs:
+   ```bash
+   sudo journalctl -u cmms -f
+   ```
+
+3. Check if port 8000 is in use:
+   ```bash
+   sudo netstat -tlnp | grep :8000
+   ```
+
+### Database Issues
+
+1. Check database file:
+   ```bash
+   ls -la /home/ubuntu/cmms/backend/cmms.db
+   ```
+
+2. Reinitialize database:
+   ```bash
+   cd /home/ubuntu/cmms
+   ./database_setup.sh full
+   ```
+
+### Nginx Issues
+
+1. Check nginx configuration:
+   ```bash
+   sudo nginx -t
+   ```
+
+2. View nginx error logs:
+   ```bash
+   sudo tail -f /var/log/nginx/error.log
+   ```
+
+### Firewall Issues
+
+1. Check firewall status:
+   ```bash
+   sudo ufw status
+   ```
+
+2. Allow required ports:
+   ```bash
+   sudo ufw allow 80/tcp
+   sudo ufw allow 443/tcp
+   ```
+
+## Security Considerations
+
+1. **Change Default Passwords**: Update the admin password after first login
+2. **SSL Certificate**: Consider adding SSL/TLS certificate for HTTPS
+3. **Firewall**: Ensure only necessary ports are open
+4. **Regular Updates**: Keep the system updated
+5. **Database Backups**: Regularly backup the SQLite database
+
+## Backup and Restore
+
+### Backup Database
+```bash
+cd /home/ubuntu/cmms
+./database_setup.sh backup
+```
+
+### Restore Database
+```bash
+cd /home/ubuntu/cmms
+./database_setup.sh restore
+```
+
+## Monitoring
+
+### Check Application Health
+```bash
+curl http://YOUR_VM_IP/api/health
+```
+
+### Monitor System Resources
+```bash
+# CPU and memory usage
+htop
+
+# Disk usage
+df -h
+
+# Application logs
+sudo journalctl -u cmms -f
+```
+
+## Updates and Maintenance
+
+### Update Application
+1. Make changes to your local code
+2. Run the deployment script again:
+   ```bash
+   ./deploy_production.sh YOUR_VM_IP
+   ```
+
+### System Updates
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+## Support
+
+If you encounter issues:
+1. Check the logs using the commands above
+2. Verify all prerequisites are met
+3. Ensure your VM has sufficient resources (at least 1GB RAM, 1 CPU)
+4. Check that your SSH key has proper permissions (`chmod 600 ~/.ssh/cmms-key.pem`) 

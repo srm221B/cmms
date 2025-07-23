@@ -369,3 +369,18 @@ def get_inventory_balances(location_id: int, db: Session = Depends(get_db)):
         })
     
     return results
+
+@router.get("/items/")
+def get_inventory_items(db: Session = Depends(get_db)):
+    """Get all inventory items for dropdowns"""
+    items = db.query(InventoryMaster).all()
+    return [
+        {
+            "id": item.id,
+            "part_name": item.part_name,
+            "part_code": item.part_code,
+            "category": item.category,
+            "unit_price": item.unit_price
+        }
+        for item in items
+    ]

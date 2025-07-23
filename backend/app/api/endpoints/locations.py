@@ -26,6 +26,12 @@ def create_location(location: LocationCreate, db: Session = Depends(get_db)):
     db.refresh(db_location)
     return db_location
 
+@router.get("/unique-addresses")
+def get_unique_addresses(db: Session = Depends(get_db)):
+    """Get unique addresses from locations table"""
+    addresses = db.query(LocationModel.address).distinct().filter(LocationModel.address.isnot(None)).all()
+    return [address[0] for address in addresses if address[0]]
+
 @router.get("/{location_id}", response_model=Location)
 def read_location(location_id: int, db: Session = Depends(get_db)):
     location = db.query(LocationModel).filter(LocationModel.id == location_id).first()

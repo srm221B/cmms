@@ -5,7 +5,9 @@ from decimal import Decimal
 from datetime import date
 
 from ...db.session import get_db
-from ...models import Asset, Location, AssetCategory
+from ...models.asset import Asset
+from ...models.location import Location
+from ...models.asset_category import AssetCategory
 from ...schemas.asset import Asset as AssetSchema, AssetCreate, AssetUpdate
 
 router = APIRouter(prefix="/assets", tags=["assets"])
@@ -111,6 +113,53 @@ def get_asset_filters(db: Session = Depends(get_db)):
         "asset_categories": asset_categories,
         "statuses": statuses
     }
+
+@router.get("/asset-categories/")
+def get_asset_categories(db: Session = Depends(get_db)):
+    """Get all asset categories"""
+    from app.models.asset_category import AssetCategory
+    categories = db.query(AssetCategory).all()
+    return [
+        {
+            "id": category.id,
+            "name": category.name,
+            "description": category.description
+        }
+        for category in categories
+    ]
+
+@router.get("/filtered/")
+def get_filtered_assets(
+    plant: Optional[str] = Query(None, description="Filter by plant (location address)"),
+    asset_category: Optional[str] = Query(None, description="Filter by asset category name"),
+    db: Session = Depends(get_db)
+):
+    """Get assets filtered by plant and asset category"""
+    query = db.query(Asset).join(Location).join(AssetCategory)
+    
+    if plant:
+        query = query.filter(Location.address == plant)
+    
+    if asset_category:
+        query = query.filter(AssetCategory.name == asset_category)
+    
+    assets = query.all()
+    return [
+        {
+            "id": asset.id,
+            "name": asset.name,
+            "location": {
+                "id": asset.location.id,
+                "name": asset.location.name,
+                "address": asset.location.address
+            },
+            "asset_category": {
+                "id": asset.asset_category.id,
+                "name": asset.asset_category.name
+            }
+        }
+        for asset in assets
+    ]
 
 @router.post("/", response_model=AssetSchema)
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db)):
