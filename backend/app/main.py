@@ -38,42 +38,42 @@ app.include_router(health.router, prefix=settings.api_v1_prefix)
 app.include_router(simple_auth.router, prefix=settings.api_v1_prefix)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/")
 async def root():
     """Root endpoint - serve the React app"""
-    return FileResponse("static/index.html")
+    return FileResponse("app/static/index.html")
 
 @app.get("/favicon.ico")
 async def favicon():
     """Serve favicon"""
-    return FileResponse("static/favicon.ico")
+    return FileResponse("app/static/favicon.ico")
 
 @app.get("/manifest.json")
 async def manifest():
     """Serve manifest.json"""
-    return FileResponse("static/manifest.json")
+    return FileResponse("app/static/manifest.json")
 
 @app.get("/robots.txt")
 async def robots():
     """Serve robots.txt"""
-    return FileResponse("static/robots.txt")
+    return FileResponse("app/static/robots.txt")
 
 @app.get("/logo192.png")
 async def logo192():
     """Serve logo192.png"""
-    return FileResponse("static/logo192.png")
+    return FileResponse("app/static/logo192.png")
 
 @app.get("/logo512.png")
 async def logo512():
     """Serve logo512.png"""
-    return FileResponse("static/logo512.png")
+    return FileResponse("app/static/logo512.png")
 
 @app.get("/asset-manifest.json")
 async def asset_manifest():
     """Serve asset-manifest.json"""
-    return FileResponse("static/asset-manifest.json")
+    return FileResponse("app/static/asset-manifest.json")
 
 # Catch-all route for React Router
 @app.get("/{full_path:path}")
@@ -83,7 +83,7 @@ async def catch_all(full_path: str):
     if full_path.startswith("api/") or full_path.startswith("static/") or full_path in ["favicon.ico", "manifest.json", "robots.txt", "logo192.png", "logo512.png", "asset-manifest.json"]:
         raise HTTPException(status_code=404, detail="Not found")
     
-    return FileResponse("static/index.html")
+    return FileResponse("app/static/index.html")
 
 if __name__ == "__main__":
     import uvicorn
