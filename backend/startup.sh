@@ -6,6 +6,7 @@ echo "🚀 Starting CMMS application..."
 if [ ! -f "./app/cmms.db" ]; then
     echo "🗄️  Initializing database..."
     python init_db.py
+    echo "✅ Database initialization completed"
 else
     echo "✅ Database already exists"
 fi
