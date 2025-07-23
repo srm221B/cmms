@@ -3,6 +3,8 @@ frontend/node_modules
 frontend/build
 frontend/dist
 frontend/.vite-cache
+# 🔧 IGNORE any file or dir named exactly '#'
+frontend/**/#
 __pycache__/
 *.pyc
 .git
