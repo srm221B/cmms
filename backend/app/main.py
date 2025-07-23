@@ -38,7 +38,7 @@ app.include_router(health.router, prefix=settings.api_v1_prefix)
 app.include_router(simple_auth.router, prefix=settings.api_v1_prefix)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static/static"), name="static")
 
 @app.get("/")
 async def root():
