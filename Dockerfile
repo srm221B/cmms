@@ -1,7 +1,14 @@
-FROM python:3.11-slim
+################ 1️⃣  React build stage ################
+FROM node:20-alpine AS client
+WORKDIR /client
+COPY frontend/ ./                       # React source
+RUN npm ci && npm run build             # ➜ /client/dist
+
+################ 2️⃣  FastAPI + startup script #########
+FROM python:3.11-slim AS api
 WORKDIR /app
 
-# Install build tools only if you really need C-extensions; else remove gcc/g++
+# ---- OS build tools (only if some deps need C) ----
 RUN apt-get update && apt-get install -y gcc g++ \
  && rm -rf /var/lib/apt/lists/*
 
@@ -9,26 +16,29 @@ RUN apt-get update && apt-get install -y gcc g++ \
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ---- Copy backend code ----
-# If your FastAPI code is in backend/app/
-COPY backend/app/    ./app/
-# Static assets (optional—remove if folder doesn't exist)
-COPY backend/static/ ./app/static/
-# Copy initialization scripts
-COPY backend/init_db.py ./
+# ---- Backend source ----
+COPY backend/app/ ./app/
+
+# ---- Optional legacy assets (parked in a sub-folder) ----
+COPY backend/static/ ./app/static/legacy/
+
+# ---- React build into the true static root ----
+COPY --from=client /client/dist/ ./app/static/
+
+# ---- Helper scripts ----
+COPY backend/init_db.py        ./
 COPY backend/create_sample_data.py ./
-COPY backend/startup.sh ./
+COPY backend/startup.sh        ./
 
 # ---- Runtime env ----
-ENV PYTHONPATH=/app
-ENV DATABASE_URL=sqlite:///./app/cmms.db
-ENV SECRET_KEY=your-secret-key-change-in-production
-ENV CORS_ORIGINS="*"
-ENV DEBUG=false
+ENV PYTHONPATH=/app \
+    DATABASE_URL=sqlite:///./app/cmms.db \
+    SECRET_KEY=your-secret-key-change-in-production \
+    CORS_ORIGINS="*" \
+    DEBUG=false \
+    PORT=8000
 
-EXPOSE 8000
+EXPOSE ${PORT}
 
-# Make startup script executable
 RUN chmod +x startup.sh
-
 CMD ["./startup.sh"]
