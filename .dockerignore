@@ -1,11 +1,13 @@
-# --- ignore any file OR directory literally named "#" anywhere ---
-**/#
-
-# keep React source; skip caches & artefacts
+# Ignore node_modules and any build artefacts
 frontend/node_modules
 frontend/build
 frontend/dist
 frontend/.vite-cache
+
+# Ignore anything literally named "#" (stops the lstat issue cold)
+**/#
+
+# Normal junk
 __pycache__/
 *.pyc
 .git
