@@ -1,13 +1,12 @@
-# Ignore node_modules and any build artefacts
+# Node & build artefacts
 frontend/node_modules
 frontend/build
 frontend/dist
 frontend/.vite-cache
-
-# Ignore anything literally named "#" (stops the lstat issue cold)
+# Ignore any file/dir literally named #
 **/#
 
-# Normal junk
+# Python / Git junk
 __pycache__/
 *.pyc
 .git
