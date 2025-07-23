@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app/    ./app/
 # Static assets (optional—remove if folder doesn't exist)
 COPY backend/static/ ./app/static/
+# Copy initialization scripts
+COPY backend/init_db.py ./
+COPY backend/create_sample_data.py ./
+COPY backend/startup.sh ./
 
 # ---- Runtime env ----
 ENV PYTHONPATH=/app
@@ -23,4 +27,8 @@ ENV CORS_ORIGINS="*"
 ENV DEBUG=false
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Make startup script executable
+RUN chmod +x startup.sh
+
+CMD ["./startup.sh"]
