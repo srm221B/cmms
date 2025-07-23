@@ -1,0 +1,10 @@
+cat > .dockerignore <<'EOF'
+# ---- keep React source, skip junk ----
+frontend/node_modules
+frontend/build
+frontend/dist
+# Python / Git clutter
+__pycache__/
+*.pyc
+.git
+EOF
