@@ -40,7 +40,7 @@
    INVENTORY_ITEMS:       `${API_BASE_URL}/inventory/items`,
    INVENTORY_TRANSFERS:   `${API_BASE_URL}/inventory/transfers`,
    INVENTORY_RECEIPTS:    `${API_BASE_URL}/inventory/receipts`,
-   inventoryDetails: (id: number) => `${API_BASE_URL}/inventory/${id}`,
+   inventoryDetails: (id: number) => `${API_BASE_URL}/inventory/${id}/details`,
    inventoryDelete:  (id: number) => `${API_BASE_URL}/inventory/${id}`,
    INVENTORY_TRANSFER:    `${API_BASE_URL}/inventory/transfer`,
    INVENTORY_RECEIVE:     `${API_BASE_URL}/inventory/receive`,

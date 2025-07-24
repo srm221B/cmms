@@ -300,7 +300,7 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
 
   const calculateTotalStock = (item: InventoryItem) => {
     if (!item.balances) return 0;
-    return item.balances.reduce((total, balance) => total + balance.in_stock, 0);
+    return item.balances?.reduce((total, balance) => total + balance.in_stock, 0) || 0;
   };
 
   // Get stock for a specific part at a specific location
@@ -353,7 +353,7 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
   const handleItemClick = async (item: InventoryItem) => {
     setDetailsLoading(true);
     try {
-      const response = await fetch(API_ENDPOINTS.INVENTORY_DETAILS(item.id));
+      const response = await fetch(API_ENDPOINTS.inventoryDetails(item.id));
       if (response.ok) {
         const details = await response.json();
         setSelectedItem(details);
@@ -572,28 +572,50 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
   const handleReceiveSubmit = async () => {
     setReceiveLoading(true);
     try {
+      // Validate form data
+      if (!receiveForm.received_to) {
+        throw new Error('Please select a location to receive to');
+      }
+      
+      if (receiveForm.items.length === 0) {
+        throw new Error('Please add at least one item to receive');
+      }
+
       // Process each item in the receive form
       for (const item of receiveForm.items) {
+        if (!item.spare_part_id || item.spare_part_id === 0) {
+          throw new Error('Please select a valid part for all items');
+        }
+        
+        if (!item.quantity || item.quantity <= 0) {
+          throw new Error('Please enter a valid quantity for all items');
+        }
+
+        const requestBody = {
+          spare_part_id: item.spare_part_id,
+          location_id: parseInt(receiveForm.received_to),
+          quantity: item.quantity,
+          received_by: receiveForm.received_by,
+          received_date: new Date(receiveForm.received_date).toISOString(),
+          supplier: receiveForm.supplier || '',
+          reference_number: receiveForm.reference_number || '',
+          unit_cost: receiveForm.unit_cost ? parseFloat(receiveForm.unit_cost) : null
+        };
+
+        console.log('Sending receive request:', requestBody);
+
         const response = await fetch(API_ENDPOINTS.INVENTORY_RECEIVE, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            spare_part_id: item.spare_part_id,
-            location_id: parseInt(receiveForm.received_to),
-            quantity: item.quantity,
-            received_by: receiveForm.received_by,
-            received_date: new Date(receiveForm.received_date).toISOString(),
-            supplier: receiveForm.supplier,
-            reference_number: receiveForm.reference_number,
-            unit_cost: receiveForm.unit_cost ? parseFloat(receiveForm.unit_cost) : null
-          })
+          body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.detail || 'Failed to receive parts');
+          const errorData = await response.json();
+          console.error('Receive error response:', errorData);
+          throw new Error(errorData.detail || `Failed to receive parts (Status: ${response.status})`);
         }
       }
 
@@ -604,6 +626,7 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
       });
       handleReceiveDialogClose();
     } catch (error) {
+      console.error('Receive parts error:', error);
       setNotification({
         open: true,
         message: error instanceof Error ? error.message : 'Error receiving parts',
@@ -1014,42 +1037,42 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
             <Box>
               {/* Header with Part Info */}
               <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                  {selectedItem.inventory_item.part_code} - {selectedItem.inventory_item.part_name}
-                </Typography>
+                                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                    {selectedItem.inventory_item?.part_code || 'N/A'} - {selectedItem.inventory_item?.part_name || 'N/A'}
+                  </Typography>
                 
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
                   <Box>
                     <Typography variant="body2" color="text.secondary">Unit Price</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      ${selectedItem.inventory_item.unit_price?.toFixed(2) || "0.00"}
+                      ${selectedItem.inventory_item?.unit_price?.toFixed(2) || "0.00"}
                     </Typography>
                   </Box>
                   <Box>
                     <Typography variant="body2" color="text.secondary">Unit of Issue</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {selectedItem.inventory_item.unit_of_issue}
+                      {selectedItem.inventory_item?.unit_of_issue || 'N/A'}
                     </Typography>
                   </Box>
                   <Box>
                     <Typography variant="body2" color="text.secondary">Minimum Quantity</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {selectedItem.inventory_item.minimum_quantity}
+                      {selectedItem.inventory_item?.minimum_quantity || 'N/A'}
                     </Typography>
                   </Box>
                   <Box>
                     <Typography variant="body2" color="text.secondary">Total Stock</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {selectedItem.balances.reduce((total, balance) => total + balance.in_stock, 0)}
+                      {selectedItem.balances?.reduce((total, balance) => total + balance.in_stock, 0) || 0}
                     </Typography>
                   </Box>
                 </Box>
 
-                {selectedItem.inventory_item.description && (
+                {selectedItem.inventory_item?.description && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">Description</Typography>
                     <Typography variant="body1" sx={{ mt: 0.5 }}>
-                      {selectedItem.inventory_item.description}
+                      {selectedItem.inventory_item?.description}
                     </Typography>
                   </Box>
                 )}
@@ -1094,7 +1117,7 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {selectedItem.balances.map((balance) => (
+                        {selectedItem.balances?.map((balance) => (
                           <TableRow key={balance.id}>
                             <TableCell>{balance.location_name}</TableCell>
                             <TableCell align="right">{balance.in_stock}</TableCell>
@@ -1114,12 +1137,12 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                     Work Order Consumption Timeline
                   </Typography>
                   
-                  {selectedItem.work_orders.length > 0 ? (
+                  {selectedItem.work_orders?.length > 0 ? (
                     <CustomTimeline>
-                      {selectedItem.work_orders.map((workOrder, index) => (
+                      {selectedItem.work_orders?.map((workOrder, index) => (
                         <CustomTimelineItem 
                           key={workOrder.id} 
-                          isLast={index === selectedItem.work_orders.length - 1}
+                          isLast={index === (selectedItem.work_orders?.length || 0) - 1}
                           dotColor="primary.main"
                         >
                           <Box sx={{ mb: 2 }}>
@@ -1161,12 +1184,12 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                     Material Receipts Timeline
                   </Typography>
                   
-                  {selectedItem.inflows.length > 0 ? (
+                  {selectedItem.inflows?.length > 0 ? (
                     <CustomTimeline>
-                      {selectedItem.inflows.map((inflow, index) => (
+                      {selectedItem.inflows?.map((inflow, index) => (
                         <CustomTimelineItem 
                           key={inflow.id} 
-                          isLast={index === selectedItem.inflows.length - 1}
+                          isLast={index === (selectedItem.inflows?.length || 0) - 1}
                           dotColor="success.main"
                         >
                           <Box sx={{ mb: 2 }}>
@@ -1951,7 +1974,7 @@ const ReceiptHistoryComponent: React.FC<{ receipts: ReceiptHistory[]; loading: b
     });
     
     // Calculate total
-    const totalCost = receipt.items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0);
+    const totalCost = receipt.items?.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0) || 0;
     doc.text(`Total Cost: $${totalCost.toFixed(2)}`, 20, doc.lastAutoTable.finalY + 10);
     
     doc.save(`receipt_note_${receipt.id}.pdf`);
@@ -2114,7 +2137,7 @@ const ReceiptHistoryComponent: React.FC<{ receipts: ReceiptHistory[]; loading: b
               
               <Box sx={{ textAlign: 'right', mt: 2 }}>
                 <Typography variant="h6">
-                  Total: ${selectedReceipt.items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0).toFixed(2)}
+                  Total: ${(selectedReceipt.items?.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0) || 0).toFixed(2)}
                 </Typography>
               </Box>
             </Box>
@@ -2172,7 +2195,7 @@ const Inventory: React.FC = () => {
         const itemsWithBalances = await Promise.all(
           data.map(async (item: InventoryItem) => {
             try {
-              const detailsResponse = await fetch(API_ENDPOINTS.INVENTORY_DETAILS(item.id));
+              const detailsResponse = await fetch(API_ENDPOINTS.inventoryDetails(item.id));
               if (detailsResponse.ok) {
                 const details = await detailsResponse.json();
                 return {
@@ -2274,7 +2297,7 @@ const Inventory: React.FC = () => {
 
   const handleDeleteItem = async (id: number) => {
     try {
-      const response = await fetch(API_ENDPOINTS.INVENTORY_DELETE(id), {
+      const response = await fetch(API_ENDPOINTS.inventoryDelete(id), {
         method: 'DELETE',
       });
       

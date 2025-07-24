@@ -8,8 +8,8 @@ from typing import List
 
 class Settings:
     # Database Configuration
-    # Use SQLite for local development - simple and no setup required
-    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./cmms.db")
+    # Use PostgreSQL for local development
+    database_url: str = os.getenv("DATABASE_URL", "postgresql+psycopg://sriram@127.0.0.1/cmms")
     
     # CORS Configuration
     # Allow localhost for development - add production domains when deploying

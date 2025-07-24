@@ -274,7 +274,7 @@ const WorkOrders: React.FC = () => {
   const handleWorkOrderClick = async (workOrder: WorkOrder) => {
     setDetailsLoading(true);
     try {
-      const response = await fetch(API_ENDPOINTS.WORK_ORDER_DETAILS(workOrder.id));
+      const response = await fetch(API_ENDPOINTS.workOrderDetails(workOrder.id));
       if (response.ok) {
         const details = await response.json();
         setSelectedWorkOrder(details);
@@ -300,7 +300,7 @@ const WorkOrders: React.FC = () => {
       const [assetsResponse, typesResponse, plantsResponse, categoriesResponse, inventoryResponse] = await Promise.all([
         fetch(API_ENDPOINTS.ASSETS),
         fetch(API_ENDPOINTS.WORK_ORDER_TYPES),
-        fetch(API_ENDPOINTS.LOCATIONS_UNIQUE_ADDRESSES),
+        fetch(API_ENDPOINTS.LOCATIONS_UNIQUE_ADDR),
         fetch(API_ENDPOINTS.ASSET_CATEGORIES),
         fetch(API_ENDPOINTS.INVENTORY_ITEMS)
       ]);
